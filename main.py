@@ -1,15 +1,16 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.filters.command import Command, CommandObject
 from aiogram.types import Message
 
 import config
+from api import pool, prices
 from dbwork import sql
-from pool import api
 
-api_work = api.PoolApi()
+api_work = pool.PoolApi()
+prices = prices.Prices()
 data_manager = sql.DBWork('sqlite:///sqlite3.db')
 
 users = data_manager.get_all_users()
@@ -21,7 +22,7 @@ dp = Dispatcher()
 
 
 @dp.message(Command("start"))
-async def cmd_start(message: types.Message):
+async def cmd_start(message: Message):
     if data_manager.check_user_exist(message.from_user.id):
         answer = f'Привіт {message.from_user.first_name}!'
     else:
@@ -47,7 +48,7 @@ async def cmd_api(message: Message, command: CommandObject):
 
 
 @dp.message(Command("stats"))
-async def cmd_get_stats(message: types.Message):
+async def cmd_get_stats(message: Message):
     if data_manager.check_user_exist(message.from_user.id):
         api_key = data_manager.get_user(message.from_user.id).api_key
         response = api_work.get_stats(api_key)
@@ -67,6 +68,15 @@ async def cmd_get_stats(message: types.Message):
                              )
     else:
         await message.answer('API key не зареєстровано')
+
+
+@dp.message(Command('prices'))
+async def popular_prices(message: Message):
+    price_list = prices.get_most_popular()
+    await message.answer(f'Bitcoin:{price_list['bitcoin']} USD\n'
+                         f'Litecoin:{price_list['litecoin']} USD\n'
+                         f'Doge:{price_list['dogecoin']} USD\n'
+                         f'Ethereum:{price_list['ethereum']} USD')
 
 
 async def main():
