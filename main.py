@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters.command import Command, CommandObject
 from aiogram.types import Message
 
-import config
+from config_reader import config
 from api import pool, prices
 from dbwork import sql
 
@@ -13,6 +13,7 @@ api_work = pool.PoolApi()
 prices = prices.Prices()
 data_manager = sql.DBWork('sqlite:///sqlite3.db')
 
+INTERVAL = int(config.interval.get_secret_value())
 price_list = {}
 users = data_manager.get_all_users()
 
@@ -21,8 +22,8 @@ async def get_prices_loop():
     global price_list
     while True:
         price_list = prices.get_most_popular()
-        print('Price list: ', price_list)
-        await asyncio.sleep(1800)
+        print(f'Price list: {price_list}, interval: {INTERVAL}')
+        await asyncio.sleep(INTERVAL)
 
 
 async def work_loop():
@@ -31,7 +32,7 @@ async def work_loop():
 
 # Bot init
 logging.basicConfig(level=logging.INFO)
-bot = Bot(token=config.BOT_TOKEN)
+bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
 dp.startup.register(work_loop)
 
