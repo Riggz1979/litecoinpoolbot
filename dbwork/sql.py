@@ -45,4 +45,3 @@ class DBWork:
         if r.fetchall():
             return True
         return False
-

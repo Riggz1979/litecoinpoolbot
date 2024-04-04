@@ -5,8 +5,9 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters.command import Command, CommandObject
 from aiogram.types import Message
 
-from config_reader import config
+import texts.texts as _texts
 from api import pool, prices
+from config_reader import config
 from dbwork import sql
 
 api_work = pool.PoolApi()
@@ -88,10 +89,15 @@ async def cmd_get_stats(message: Message):
 
 @dp.message(Command('prices'))
 async def popular_prices(message: Message):
-    await message.answer(f'Bitcoin:{price_list['bitcoin']} USD\n'
-                         f'Litecoin:{price_list['litecoin']} USD\n'
-                         f'Doge:{price_list['dogecoin']} USD\n'
-                         f'Ethereum:{price_list['ethereum']} USD')
+    await message.answer(f'Bitcoin:      {price_list['bitcoin']} USD\n'
+                         f'Litecoin:    {price_list['litecoin']} USD\n'
+                         f'Doge:         {price_list['dogecoin']} USD\n'
+                         f'Ethereum:  {price_list['ethereum']} USD')
+
+
+@dp.message(Command('commands'))
+async def commands(message: Message):
+    await message.answer(_texts.COMMANDS)
 
 
 async def main():
