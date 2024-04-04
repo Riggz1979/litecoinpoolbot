@@ -13,12 +13,27 @@ api_work = pool.PoolApi()
 prices = prices.Prices()
 data_manager = sql.DBWork('sqlite:///sqlite3.db')
 
+price_list = {}
 users = data_manager.get_all_users()
+
+
+async def get_prices_loop():
+    global price_list
+    while True:
+        price_list = prices.get_most_popular()
+        print('Price list: ', price_list)
+        await asyncio.sleep(1800)
+
+
+async def work_loop():
+    asyncio.create_task(get_prices_loop())
+
 
 # Bot init
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.BOT_TOKEN)
 dp = Dispatcher()
+dp.startup.register(work_loop)
 
 
 @dp.message(Command("start"))
@@ -72,7 +87,6 @@ async def cmd_get_stats(message: Message):
 
 @dp.message(Command('prices'))
 async def popular_prices(message: Message):
-    price_list = prices.get_most_popular()
     await message.answer(f'Bitcoin:{price_list['bitcoin']} USD\n'
                          f'Litecoin:{price_list['litecoin']} USD\n'
                          f'Doge:{price_list['dogecoin']} USD\n'
