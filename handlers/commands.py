@@ -64,3 +64,6 @@ async def cmd_api(message: Message, command: CommandObject):
 @router.message(Command('commands'))
 async def commands(message: Message):
     await message.answer(_texts.COMMANDS)
+
+
+

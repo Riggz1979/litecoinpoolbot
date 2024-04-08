@@ -6,7 +6,6 @@ from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message
 
-
 from config_reader import config
 
 ADMIN_ID = int(config.admin_id.get_secret_value())
@@ -27,24 +26,22 @@ async def admin(message: Message):
 
 
 @router.message(Command('restart'))
-async def restart(message: Message):
+async def restart(message: Message, dispatcher):
     if message.from_user.id == ADMIN_ID:
         await message.answer("Restarting...")
+        await dispatcher.stop_polling()
         restart_program()
 
 
 @router.message(F.document)
-async def download(message: Message):
+async def ota(message: Message, bot):
     print(message.document.file_name)
     if message.from_user.id == ADMIN_ID:
         await message.answer('Downloading...')
-        await message.document.download(PATH)
-
+        await bot.download(message.document, destination=f'{PATH}/{message.document.file_name}')
         if message.document.file_name == 'OTA.zip':
             with zipfile.ZipFile(message.document.file_name, mode='r') as ota:
                 print(ota.namelist())
                 ota.extractall(PATH)
-
             await message.answer('OTA received\nRestarting program')
             restart_program()
-
