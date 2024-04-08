@@ -30,4 +30,3 @@ class Prices:
 if __name__ == '__main__':
     price = Prices()
     print(price.get_most_popular())
-

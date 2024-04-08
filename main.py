@@ -18,7 +18,8 @@ price_list = {}
 
 
 async def say_hi():
-    await bot.send_message(ADMIN_ID, f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} bot online!')
+    await bot.send_message(ADMIN_ID, f'{datetime.now().strftime("%d/%m/%Y %H:%M:%S")} '
+                                     f'bot online!\nVersion 1.1')
 
 
 async def get_prices_loop():
