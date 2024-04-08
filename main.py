@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+
 from aiogram import Bot, Dispatcher
 from aiogram.filters.command import Command
 from aiogram.types import Message
@@ -8,6 +9,7 @@ from aiogram.types import Message
 from api import prices
 from config_reader import config
 from handlers import commands, admin
+
 
 prices = prices.Prices()
 
@@ -37,7 +39,10 @@ dp.include_routers(commands.router, admin.router)
 
 @dp.message(Command('prices'))
 async def popular_prices(message: Message):
-    await message.answer(f'Bitcoin:      {price_list['bitcoin']} USD\nLitecoin:    {price_list['litecoin']} USD\nDoge:         {price_list['dogecoin']} USD\nEthereum:  {price_list['ethereum']} USD')
+    await message.answer(f'Bitcoin:      {price_list['bitcoin']} USD\n'
+                         f'Litecoin:    {price_list['litecoin']} USD\n'
+                         f'Doge:         {price_list['dogecoin']} USD\n'
+                         f'Ethereum:  {price_list['ethereum']} USD')
 
 
 async def main():
