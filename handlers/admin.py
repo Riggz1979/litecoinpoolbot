@@ -35,11 +35,16 @@ async def restart(message: Message):
 
 @router.message(F.document)
 async def download(message: Message):
+    print(message.document.file_name)
     if message.from_user.id == ADMIN_ID:
+        await message.answer('Downloading...')
+        await message.document.download(PATH)
+
         if message.document.file_name == 'OTA.zip':
             with zipfile.ZipFile(message.document.file_name, mode='r') as ota:
                 print(ota.namelist())
                 ota.extractall(PATH)
 
-            await message.answer('OTA received')
+            await message.answer('OTA received\nRestarting program')
             restart_program()
+
