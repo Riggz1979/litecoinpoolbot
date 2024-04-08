@@ -37,10 +37,7 @@ dp.include_routers(commands.router, admin.router)
 
 @dp.message(Command('prices'))
 async def popular_prices(message: Message):
-    await message.answer(f'Bitcoin:      {price_list['bitcoin']} USD\n'
-                         f'Litecoin:    {price_list['litecoin']} USD\n'
-                         f'Doge:         {price_list['dogecoin']} USD\n'
-                         f'Ethereum:  {price_list['ethereum']} USD')
+    await message.answer(f'Bitcoin:      {price_list['bitcoin']} USD\nLitecoin:    {price_list['litecoin']} USD\nDoge:         {price_list['dogecoin']} USD\nEthereum:  {price_list['ethereum']} USD')
 
 
 async def main():
