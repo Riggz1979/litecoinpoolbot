@@ -30,7 +30,7 @@ async def get_prices_loop():
         await asyncio.sleep(INTERVAL)
 
 
-async def work_loop():
+async def price_loop():
     asyncio.create_task(get_prices_loop())
 
 
@@ -38,7 +38,7 @@ async def work_loop():
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
-dp.startup.register(work_loop)
+dp.startup.register(price_loop)
 dp.startup.register(say_hi)
 dp.include_routers(commands.router, admin.router)
 

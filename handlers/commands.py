@@ -64,3 +64,12 @@ async def cmd_api(message: Message, command: CommandObject):
 @router.message(Command('commands'))
 async def commands(message: Message):
     await message.answer(_texts.COMMANDS)
+
+
+@router.message(Command("watchdog"))
+async def set_watchdog(message: Message, command: CommandObject):
+    if command.args is None:
+        await message.answer(f'Watchdog is: {str(data_manager.hash_watchdog(message.from_user.id))} Mh/s')
+    else:
+        data_manager.hash_watchdog(message.from_user.id, int(command.args))
+        await message.answer(f'Wachdog set: {command.args} Mh/s')
