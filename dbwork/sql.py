@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, create_engine, MetaData, Table, insert, update, delete, select
+from sqlalchemy import Column, Integer, String, create_engine, MetaData, Table, insert, update, select
 
 
 class DBWork:
@@ -39,7 +39,7 @@ class DBWork:
         if args:
             u = (update(self.user)
                  .where(self.user.c.tg_id == tg_id)
-                 .values(hash_wd = args[0]))
+                 .values(hash_wd=args[0]))
             self.conn.execute(u)
             self.conn.commit()
             return args[0]
@@ -49,10 +49,6 @@ class DBWork:
                  .where(self.user.c.tg_id == tg_id))
             r = self.conn.execute(u)
             return r.fetchone()[0]
-
-
-
-
 
     def get_user(self, tg_id_to_check):
         u = self.user.select().where(self.user.c.tg_id == tg_id_to_check)

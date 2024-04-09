@@ -8,7 +8,7 @@ from aiogram.types import Message
 
 from api import prices
 from config_reader import config
-from handlers import commands, admin
+from handlers import commands, admin, loop_tasks
 
 prices = prices.Prices()
 
@@ -39,6 +39,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
 dp.startup.register(price_loop)
+dp.startup.register(loop_tasks.watchdog_loop)
 dp.startup.register(say_hi)
 dp.include_routers(commands.router, admin.router)
 
