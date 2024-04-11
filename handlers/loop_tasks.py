@@ -1,36 +1,34 @@
 import asyncio
 import random
 
-from handlers.commands import data_manager
+from handlers.commands import data_manager, api_work
 
 
 # TODO: Need to finish and optimize
 async def check_watchdogs(bot):
     count = 0
     watchdogs = {}
-    watchdogs[1] = 0
-    watchdogs[2] = 0
+    users_list = []
     while True:
         count += 1
-        users_list = data_manager.get_all_users()
-        print(f'Count: {count}')
+        if count == 1:
+            users_list = data_manager.get_all_users()
+            for user in users_list:
+                watchdogs[user[0]] = 0
         for user in users_list:
-            print(user)
             user_id = user[0]
-            wd = random.randint(400, 550)  # api_work.get_hash(user[2])
+            wd =api_work.get_hash(user[2])  # random.randint(400, 550)
             watchdogs[user_id] += wd
-            if count == 10:
+            if count == 5:
                 awg_wd = watchdogs[user_id] / count
-                print(awg_wd)
+
                 if awg_wd < user[3]:
-                    await bot.send_message(user[1], 'wd')
+                    await bot.send_message(user[1], f'Warning! Looks like your hash rate low! '
+                                                    f'{awg_wd} MH/s vs {user[3]} MH/s')
 
-        if count == 10:
+        if count == 5:
             count = 0
-            watchdogs[1] = 0
-            watchdogs[2] = 0
-
-        await asyncio.sleep(120)
+        await asyncio.sleep(300)
 
 
 # END TODO

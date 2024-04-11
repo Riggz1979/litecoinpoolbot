@@ -15,10 +15,10 @@ router = Router()
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     if data_manager.check_user_exist(message.from_user.id):
-        answer = f'Привіт {message.from_user.first_name}!'
+        answer = f'Hi, {message.from_user.first_name}! Ready to work'
     else:
-        answer = (f'Привіт {message.from_user.first_name}! '
-                  f'Ваш user_id:{message.from_user.id}. API key не зареєстровано')
+        answer = (f'Hi, {message.from_user.first_name}! '
+                  f'Your tg_id:{message.from_user.id}. API key not registered')
     await message.answer(answer)
 
 
@@ -42,23 +42,23 @@ async def cmd_get_stats(message: Message):
                              f'24h USD: {app_usd}'
                              )
     else:
-        await message.answer('API key не зареєстровано')
+        await message.answer('API key not registered')
 
 
 @router.message(Command("api"))
 async def cmd_api(message: Message, command: CommandObject):
     if command.args is None:
         await message.answer(
-            "Формат команди: /api 'ваш ключ'"
+            "Command format: /api 'your_key'"
         )
     else:
         key = command.args
         if api_work.check_key(key) and not data_manager.check_api_key_exist(key):
 
             data_manager.add_user(message.from_user.id, key)
-            await message.answer('Ключ успішно зареєстровано.')
+            await message.answer('API key successfully added.')
         else:
-            await message.answer('Невірний ключ API, або вже зареєстровано.')
+            await message.answer('Wrong API key, or API key already registered.')
 
 
 @router.message(Command('commands'))
@@ -77,4 +77,4 @@ async def set_watchdog(message: Message, command: CommandObject):
         else:
             await message.answer('Wrong arguments')
     else:
-        await message.answer('API key не зареєстровано.')
+        await message.answer('API key not registered.')

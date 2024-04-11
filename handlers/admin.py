@@ -22,7 +22,9 @@ def restart_program():
 @router.message(Command('admin'))
 async def admin(message: Message):
     if message.from_user.id == ADMIN_ID:
-        await message.answer(PATH)
+        await message.answer('Yes, you are admin!')
+    else:
+        await message.answer('You don\'t have admin permissions')
 
 
 @router.message(Command('restart'))

@@ -1,5 +1,5 @@
 COMMANDS = (f'Список команд:\n'
-            f'/start - Вітання\n'
-            f'/prices - Курси популярних кріптовалют\n'
-            f'/api - Реєстрация ключа API для монітргінгу\n'
-            f'/stats - Статистика майнінгу')
+            f'/start - Greetings\n'
+            f'/prices - Popular crypto prices\n'
+            f'/api - API key registration for pool monitoring\n'
+            f'/stats - Mining statistics\n')
