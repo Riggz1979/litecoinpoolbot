@@ -1,5 +1,4 @@
 import asyncio
-import random
 
 from handlers.commands import data_manager, api_work
 
@@ -17,7 +16,7 @@ async def check_watchdogs(bot):
                 watchdogs[user[0]] = 0
         for user in users_list:
             user_id = user[0]
-            wd =api_work.get_hash(user[2])  # random.randint(400, 550)
+            wd = api_work.get_hash(user[2])  # random.randint(400, 550)
             watchdogs[user_id] += wd
             if count == 5:
                 awg_wd = watchdogs[user_id] / count

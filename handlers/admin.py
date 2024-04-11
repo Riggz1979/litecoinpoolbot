@@ -36,14 +36,22 @@ async def restart(message: Message, dispatcher):
 
 
 @router.message(F.document)
-async def ota(message: Message, bot):
+async def ota(message: Message, bot, dispatcher):
     print(message.document.file_name)
-    if message.from_user.id == ADMIN_ID:
+    if message.from_user.id == ADMIN_ID and message.document.file_name == 'OTA.zip':
+        if os.path.exists(f'{PATH}/OTA.zip'):
+            os.remove('OTA.zip')
+            await message.answer('Old OTA zip file deleted')
+        else:
+            await message.answer('Old OTA zip file not found')
+
         await message.answer('Downloading...')
         await bot.download(message.document, destination=f'{PATH}/{message.document.file_name}')
-        if message.document.file_name == 'OTA.zip':
-            with zipfile.ZipFile(message.document.file_name, mode='r') as ota:
-                print(ota.namelist())
-                ota.extractall(PATH)
-            await message.answer('OTA received\nRestarting program')
-            restart_program()
+
+        with zipfile.ZipFile(message.document.file_name, mode='r') as ota_file:
+            print(ota_file.namelist())
+            ota_file.extractall(PATH)
+
+        await message.answer('OTA received\nRestarting program')
+        await dispatcher.stop_polling()
+        restart_program()

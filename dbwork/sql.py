@@ -44,7 +44,6 @@ class DBWork:
             self.conn.commit()
             return args[0]
         else:
-            print(tg_id)
             u = (select(self.user.c['hash_wd'])
                  .where(self.user.c.tg_id == tg_id))
             r = self.conn.execute(u)
