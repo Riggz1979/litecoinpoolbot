@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, create_engine, MetaData, Table, insert, update, select
+from sqlalchemy import Column, String, create_engine, MetaData, Table, insert, update, select, BigInteger
 
 
 class DBWork:
@@ -7,15 +7,17 @@ class DBWork:
         self.engine.connect()
         self.metadata = MetaData()
         self.user = Table('users', self.metadata,
-                          Column('user_id', Integer, primary_key=True),
-                          Column('tg_id', Integer, unique=True),
+                          Column('user_id', BigInteger, primary_key=True),
+                          Column('tg_id', BigInteger, unique=True),
                           Column('api_key', String(255), unique=True),
-                          Column('hash_wd', Integer, default=0)
+                          Column('hash_wd', BigInteger, default=0)
                           )
         self.metadata.create_all(self.engine)
         self.conn = self.engine.connect()
 
     def add_user(self, tg_id, api_key):
+        print(tg_id, api_key)
+        print(type(api_key), type(tg_id))
         user_to_add = insert(self.user).values(
             tg_id=tg_id,
             api_key=api_key,
