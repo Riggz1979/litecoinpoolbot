@@ -3,7 +3,6 @@ import asyncio
 from handlers.commands import data_manager, api_work
 
 
-# TODO: Need to finish and optimize
 async def check_watchdogs(bot):
     count = 0
     watchdogs = {}
@@ -29,8 +28,6 @@ async def check_watchdogs(bot):
             count = 0
         await asyncio.sleep(300)
 
-
-# END TODO
 
 async def watchdog_loop(bot):
     asyncio.create_task(check_watchdogs(bot))

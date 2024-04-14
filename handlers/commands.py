@@ -4,9 +4,12 @@ from aiogram.types import Message
 
 import texts.texts as _texts
 from api import pool
+from config_reader import config
 from dbwork import sql
 
-data_manager = sql.DBWork('sqlite:///sqlite3.db')
+
+DATABASE = config.database.get_secret_value()
+data_manager = sql.DBWork(DATABASE)
 api_work = pool.PoolApi()
 
 router = Router()
