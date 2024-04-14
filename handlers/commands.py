@@ -1,12 +1,12 @@
-from aiogram import Router, F
+from aiogram import Router, F, types
 from aiogram.filters import Command, CommandObject
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import texts.texts as _texts
 from api import pool
 from config_reader import config
 from dbwork import sql
-from keyboards import for_alerts
 
 DATABASE = config.database.get_secret_value()
 data_manager = sql.DBWork(DATABASE)
@@ -85,20 +85,53 @@ async def set_watchdog(message: Message, command: CommandObject):
 
 @router.message(Command("set_alert"))
 async def set_alert(message: Message, command: CommandObject):
-    if data_manager.check_user_exist(message.from_user.id):
-        await message.answer('Select crypto:'
-                             , reply_markup=for_alerts.select_crypto())
-
-    @router.message(F.text.lower() == 'bitcoin')
-    async def answer_yes(message: Message):
+    if command.args is None:
         await message.answer(
-            "BTC",
-            reply_markup=ReplyKeyboardRemove()
+            'No arguments provided'
         )
-
-    @router.message(F.text.lower() == 'litecoin')
-    async def answer_yes(message: Message):
+        return
+    try:
+        crypto, gt, val = command.args.split(" ", maxsplit=2)
+    except ValueError:
         await message.answer(
-            "LTC",
-            reply_markup=ReplyKeyboardRemove()
+            'Wrong arguments. Please try again.'
         )
+        return
+    if crypto not in['bitcoin', 'litecoin', 'dogecoin', 'ethereum']:
+        await message.answer('Unsupported crypto type.')
+        return None
+    if gt == '>':
+        gt_add = True
+    elif gt == '<':
+        gt_add = False
+    else:
+        await message.answer('Alert must be > <')
+        return None
+    if len(val) < 12:
+        try:
+            val = float(val)
+            print(val)
+        except ValueError:
+            await message.answer('Check value!')
+            return None
+        data_manager.set_alert(message.from_user.id,crypto.lower(), val, gt_add)
+        await message.answer(f'Alert set: {crypto}{gt}{val}')
+    else:
+        await message.answer('Check value!')
+
+@router.message(Command('alerts'))
+async def alerts_list(message: Message):
+    answer_str = f'{message.from_user.first_name} alerts list:\n'
+    alerts = data_manager.alerts_list(message.from_user.id)
+    for alert in alerts:
+        if alert.go_up:
+            ans_go_up = '>'
+        else:
+            ans_go_up = '<'
+        answer_str += (f'{alert.alert_id}: '
+                       f'{alert.crypto}'
+                       f'{ans_go_up}'
+                       f'{alert.value}\n')
+    await message.answer(answer_str)
+
+

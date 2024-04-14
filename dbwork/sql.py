@@ -1,5 +1,7 @@
-from sqlalchemy import Column, String, create_engine, MetaData, Table, insert, update, select, BigInteger, ForeignKey, \
-    Boolean
+from sqlalchemy import (Column, String, create_engine,
+                        MetaData, Table, insert,
+                        update, select, BigInteger,
+                        ForeignKey, Boolean, Float)
 
 
 class DBWork:
@@ -17,16 +19,15 @@ class DBWork:
                            Column('alert_id', BigInteger, primary_key=True),
                            Column('user_id', BigInteger, ForeignKey('users.tg_id')),
                            Column('crypto', String(255)),
-                           Column('value', BigInteger, default=0),
-                           Column('go_up', Boolean, default=False)
+                           Column('value', Float, default=0),
+                           Column('go_up', Boolean, default=False),
+
                            )
 
         self.metadata.create_all(self.engine)
         self.conn = self.engine.connect()
 
     def add_user(self, tg_id, api_key):
-        print(tg_id, api_key)
-        print(type(api_key), type(tg_id))
         user_to_add = insert(self.user).values(
             tg_id=tg_id,
             api_key=api_key,
@@ -72,8 +73,18 @@ class DBWork:
             return True
         return False
 
+    def set_alert(self, user_id, crypto, value, go_up):
+        alert_to_add = (insert(self.alert).
+                        values(user_id=user_id,
+                               crypto=crypto,
+                               value=value,
+                               go_up=go_up))
+        self.conn.execute(alert_to_add)
+        self.conn.commit()
 
-if __name__ == '__main__':
-    d = DBWork('sqlite:///sqlite3.db')
-    u = select(d.user.c['tg_id']).where((d.user.c.tg_id == 1))
-    print(u)
+    def alerts_list(self, for_user):
+        u = self.alert.select().where(self.alert.c.user_id == for_user)
+        r = self.conn.execute(u)
+        return r.fetchall()
+
+
