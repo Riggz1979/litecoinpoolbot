@@ -1,11 +1,12 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import Command, CommandObject
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 
 import texts.texts as _texts
 from api import pool
 from config_reader import config
 from dbwork import sql
+from keyboards import for_alerts
 
 DATABASE = config.database.get_secret_value()
 data_manager = sql.DBWork(DATABASE)
@@ -80,3 +81,24 @@ async def set_watchdog(message: Message, command: CommandObject):
             await message.answer('Wrong arguments')
     else:
         await message.answer('API key not registered.')
+
+
+@router.message(Command("set_alert"))
+async def set_alert(message: Message, command: CommandObject):
+    if data_manager.check_user_exist(message.from_user.id):
+        await message.answer('Select crypto:'
+                             , reply_markup=for_alerts.select_crypto())
+
+    @router.message(F.text.lower() == 'bitcoin')
+    async def answer_yes(message: Message):
+        await message.answer(
+            "BTC",
+            reply_markup=ReplyKeyboardRemove()
+        )
+
+    @router.message(F.text.lower() == 'litecoin')
+    async def answer_yes(message: Message):
+        await message.answer(
+            "LTC",
+            reply_markup=ReplyKeyboardRemove()
+        )

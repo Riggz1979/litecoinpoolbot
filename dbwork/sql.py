@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, create_engine, MetaData, Table, insert, update, select, BigInteger
+from sqlalchemy import Column, String, create_engine, MetaData, Table, insert, update, select, BigInteger, ForeignKey, \
+    Boolean
 
 
 class DBWork:
@@ -12,6 +13,14 @@ class DBWork:
                           Column('api_key', String(255), unique=True),
                           Column('hash_wd', BigInteger, default=0)
                           )
+        self.alert = Table('alerts', self.metadata,
+                           Column('alert_id', BigInteger, primary_key=True),
+                           Column('user_id', BigInteger, ForeignKey('users.tg_id')),
+                           Column('crypto', String(255)),
+                           Column('value', BigInteger, default=0),
+                           Column('go_up', Boolean, default=False)
+                           )
+
         self.metadata.create_all(self.engine)
         self.conn = self.engine.connect()
 
