@@ -1,5 +1,5 @@
 import asyncio
-from random import random, randint
+from random import randint
 
 import varlist
 from api import prices
@@ -8,7 +8,7 @@ from handlers.commands import data_manager, api_work
 
 prices = prices.Prices()
 INTERVAL = int(config.interval.get_secret_value())
-TEST = bool(config.test.get_secret_value())
+TEST = config.test.get_secret_value() == 'True'
 
 
 async def check_watchdogs(bot):
@@ -24,6 +24,7 @@ async def check_watchdogs(bot):
     users_list = []
     while True:
         count += 1
+        print(TEST)
         if count == 1:
             users_list = data_manager.get_all_users()
             for user in users_list:
@@ -59,19 +60,21 @@ async def check_alerts_list(bot):
         alert_string = 'Alerts:\n'
         users_list = data_manager.get_all_users()
         for user in users_list:
-            print(user.tg_id)
             alerts_to_check = data_manager.get_user_alerts(user.tg_id)
             for alert in alerts_to_check:
                 if alert.go_up is True:
                     if varlist.price_list[alert.crypto] > alert.value:
-                        alert_string += f'{alert.crypto} > {alert.value} ({varlist.price_list[alert.crypto]})\n'
+                        alert_string += f'{alert.id}: {alert.crypto} > {alert.value} ({varlist.price_list[alert.crypto]})\n'
                 else:
                     if varlist.price_list[alert.crypto] < alert.value:
-                        alert_string += f'{alert.crypto} < {alert.value} ({varlist.price_list[alert.crypto]})\n'
+                        alert_string += f'{alert.id}: {alert.crypto} < {alert.value} ({varlist.price_list[alert.crypto]})\n'
             if alert_string != 'Alerts:\n':
                 await bot.send_message(user.tg_id, alert_string)
                 alert_string = 'Alerts:\n'
-        await asyncio.sleep(20)
+        if TEST:
+            await asyncio.sleep(30)
+        else:
+            await asyncio.sleep(INTERVAL)
 
 
 async def get_prices_loop():

@@ -9,6 +9,7 @@ from config_reader import config
 from dbwork import sql
 
 DATABASE = config.database.get_secret_value()
+ADMIN_ID = int(config.admin_id.get_secret_value())
 data_manager = sql.DBWork(DATABASE)
 api_work = pool.PoolApi()
 
@@ -74,7 +75,10 @@ async def cmd_api(message: Message, command: CommandObject):
 
 @router.message(Command('commands'))
 async def commands(message: Message):
-    await message.answer(_texts.COMMANDS)
+    if message.from_user.id != ADMIN_ID:
+        await message.answer(_texts.COMMANDS)
+    else:
+        await message.answer(_texts.COMMANDS + _texts.ADMIN_COMMANDS)
 
 
 @router.message(Command("watchdog"))
@@ -93,39 +97,48 @@ async def set_watchdog(message: Message, command: CommandObject):
 
 @router.message(Command("set_alert"))
 async def set_alert(message: Message, command: CommandObject):
-    if command.args is None:
-        await message.answer(
-            'No arguments provided'
-        )
-        return
-    try:
-        crypto, gt, val = command.args.split(" ", maxsplit=2)
-    except ValueError:
-        await message.answer(
-            'Wrong arguments. Please try again.'
-        )
-        return
-    if crypto not in ['bitcoin', 'litecoin', 'dogecoin', 'ethereum']:
-        await message.answer('Unsupported crypto type.')
-        return None
-    if gt == '>':
-        gt_add = True
-    elif gt == '<':
-        gt_add = False
-    else:
-        await message.answer('Alert must be > <')
-        return None
-    if len(val) < 12:
+    if data_manager.check_user_exist(message.from_user.id):
+        if command.args is None:
+            await message.answer(
+                'No arguments provided!\n'
+                'example: /set_alert bitcoin > 100000'
+            )
+            return
         try:
-            val = float(val)
-            print(val)
+            crypto, gt, val = command.args.split(" ", maxsplit=2)
         except ValueError:
-            await message.answer('Check value!')
+            await message.answer(
+                'Wrong arguments. Please try again.'
+            )
+            return
+        if crypto not in ['bitcoin', 'litecoin', 'dogecoin', 'ethereum']:
+            await message.answer('Unsupported crypto type.\n'
+                                 'Now supported:\n'
+                                 'bitcoin\n'
+                                 'litecoin\n'
+                                 'dogecoin\n'
+                                 'ethereum\n')
             return None
-        data_manager.set_alert(message.from_user.id, crypto.lower(), val, gt_add)
-        await message.answer(f'Alert set: {crypto}{gt}{val}')
+        if gt == '>':
+            gt_add = True
+        elif gt == '<':
+            gt_add = False
+        else:
+            await message.answer('Comparison sign must be > or <')
+            return None
+        if len(val) < 12:
+            try:
+                val = float(val)
+                print(val)
+            except ValueError:
+                await message.answer('Check value!')
+                return None
+            data_manager.set_alert(message.from_user.id, crypto.lower(), val, gt_add)
+            await message.answer(f'Alert set: {crypto}{gt}{val}')
+        else:
+            await message.answer('Check value!')
     else:
-        await message.answer('Check value!')
+        await message.answer('API key not registered.')
 
 
 @router.message(Command('alerts'))
@@ -148,7 +161,8 @@ async def alerts_list(message: Message):
 async def del_alert(message: Message, command: CommandObject):
     if command.args is None:
         await message.answer(
-            'No arguments provided'
+            'No arguments provided\n'
+            'example: /del_alert 25'
         )
         return
     if command.args.isdigit():
