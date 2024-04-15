@@ -16,7 +16,6 @@ class Prices:
 
     def get_most_popular(self):
         url = f'{self.URL}bitcoin,litecoin,dogecoin,ethereum&vs_currencies=usd'
-        print(url)
         response = requests.get(url)
         if response.status_code == 200:
             prices = {}
@@ -25,8 +24,3 @@ class Prices:
             return prices
         else:
             print(f'Error: {response.status_code}')
-
-
-if __name__ == '__main__':
-    price = Prices()
-    print(price.get_most_popular())

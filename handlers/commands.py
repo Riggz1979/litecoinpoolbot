@@ -129,7 +129,6 @@ async def set_alert(message: Message, command: CommandObject):
         if len(val) < 12:
             try:
                 val = float(val)
-                print(val)
             except ValueError:
                 await message.answer('Check value!')
                 return None

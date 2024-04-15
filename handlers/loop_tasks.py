@@ -24,7 +24,6 @@ async def check_watchdogs(bot):
     users_list = []
     while True:
         count += 1
-        print(TEST)
         if count == 1:
             users_list = data_manager.get_all_users()
             for user in users_list:
