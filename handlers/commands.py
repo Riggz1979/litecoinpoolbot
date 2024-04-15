@@ -1,9 +1,9 @@
-from aiogram import Router, F, types
+from aiogram import Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import texts.texts as _texts
+import varlist
 from api import pool
 from config_reader import config
 from dbwork import sql
@@ -47,12 +47,15 @@ async def cmd_get_stats(message: Message):
     else:
         await message.answer('API key not registered')
 
+
 @router.message(Command('prices'))
 async def popular_prices(message: Message):
-    await message.answer(f'Bitcoin:      {price_list['bitcoin']} USD\n'
-                         f'Litecoin:    {price_list['litecoin']} USD\n'
-                         f'Doge:         {price_list['dogecoin']} USD\n'
-                         f'Ethereum:  {price_list['ethereum']} USD')
+    await message.answer(f'Bitcoin:      {varlist.price_list['bitcoin']} USD\n'
+                         f'Litecoin:    {varlist.price_list['litecoin']} USD\n'
+                         f'Doge:         {varlist.price_list['dogecoin']} USD\n'
+                         f'Ethereum:  {varlist.price_list['ethereum']} USD')
+
+
 @router.message(Command("api"))
 async def cmd_api(message: Message, command: CommandObject):
     if command.args is None:
@@ -102,7 +105,7 @@ async def set_alert(message: Message, command: CommandObject):
             'Wrong arguments. Please try again.'
         )
         return
-    if crypto not in['bitcoin', 'litecoin', 'dogecoin', 'ethereum']:
+    if crypto not in ['bitcoin', 'litecoin', 'dogecoin', 'ethereum']:
         await message.answer('Unsupported crypto type.')
         return None
     if gt == '>':
@@ -119,10 +122,11 @@ async def set_alert(message: Message, command: CommandObject):
         except ValueError:
             await message.answer('Check value!')
             return None
-        data_manager.set_alert(message.from_user.id,crypto.lower(), val, gt_add)
+        data_manager.set_alert(message.from_user.id, crypto.lower(), val, gt_add)
         await message.answer(f'Alert set: {crypto}{gt}{val}')
     else:
         await message.answer('Check value!')
+
 
 @router.message(Command('alerts'))
 async def alerts_list(message: Message):
@@ -133,11 +137,12 @@ async def alerts_list(message: Message):
             ans_go_up = '>'
         else:
             ans_go_up = '<'
-        answer_str += (f'{alert.alert_id}: '
+        answer_str += (f'{alert.id}: '
                        f'{alert.crypto}'
                        f'{ans_go_up}'
                        f'{alert.value}\n')
     await message.answer(answer_str)
+
 
 @router.message(Command('del_alert'))
 async def del_alert(message: Message, command: CommandObject):
@@ -151,6 +156,3 @@ async def del_alert(message: Message, command: CommandObject):
             await message.answer('Alert deleted!')
         else:
             await message.answer('Invalid alert id!')
-
-
-

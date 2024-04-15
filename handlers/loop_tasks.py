@@ -1,14 +1,20 @@
 import asyncio
 
+import varlist
+from api import prices
 from config_reader import config
 from handlers.commands import data_manager, api_work
-from api import prices
 
 prices = prices.Prices()
 INTERVAL = int(config.interval.get_secret_value())
 
 
 async def check_watchdogs(bot):
+    """
+    Checks if the hash rate is over watchdog value and send message to user if not
+    :param bot:
+    :return:
+    """
     count = 0
     watchdogs = {}
     users_list = []
@@ -31,32 +37,52 @@ async def check_watchdogs(bot):
 
         if count == 5:
             count = 0
-        await asyncio.sleep(300)
-
-
-async def watchdog_loop(bot):
-    asyncio.create_task(check_watchdogs(bot))
+        await asyncio.sleep(360)
 
 
 async def check_alerts_list(bot):
+    """
+    Checking alerts list and sending message to users
+    :param bot:
+    :return:
+    """
     while True:
-        alerts_to_check = data_manager.get_all_alerts()
-        for alert in alerts_to_check:
-            print(alert)
-        print("Alerts")
+        alert_string = 'Alerts:\n'
+        users_list = data_manager.get_all_users()
+        for user in users_list:
+            print(user.tg_id)
+            alerts_to_check = data_manager.get_user_alerts(user.tg_id)
+            for alert in alerts_to_check:
+                if alert.go_up is True:
+                    if varlist.price_list[alert.crypto] > alert.value:
+                        alert_string += f'{alert.crypto} > {alert.value} ({varlist.price_list[alert.crypto]})\n'
+                else:
+                    if varlist.price_list[alert.crypto] < alert.value:
+                        alert_string += f'{alert.crypto} < {alert.value} ({varlist.price_list[alert.crypto]})\n'
+            if alert_string != 'Alerts:\n':
+                await bot.send_message(user.tg_id, alert_string)
+                alert_string = 'Alerts:\n'
         await asyncio.sleep(20)
+
+
+async def get_prices_loop():
+    """
+    Get prices of crypto from coingecko
+    Saving prices in varlist.price_list
+    :return:
+    """
+    while True:
+        varlist.price_list = prices.get_most_popular()
+        await asyncio.sleep(INTERVAL)
 
 
 async def alert_loop(bot):
     asyncio.create_task(check_alerts_list(bot))
 
-async def get_prices_loop():
-    global price_list
-    while True:
-        price_list = prices.get_most_popular()
-        print(f'Price list: {price_list}, interval: {INTERVAL}')
-        await asyncio.sleep(INTERVAL)
-
 
 async def price_loop():
     asyncio.create_task(get_prices_loop())
+
+
+async def watchdog_loop(bot):
+    asyncio.create_task(check_watchdogs(bot))

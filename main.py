@@ -3,8 +3,6 @@ import logging
 from datetime import datetime
 
 from aiogram import Bot, Dispatcher
-from aiogram.filters.command import Command
-from aiogram.types import Message
 
 from config_reader import config
 from handlers import commands, admin, loop_tasks
@@ -21,14 +19,11 @@ async def say_hi():
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
-dp.startup.register(loop_tasks.price_loop())
+dp.startup.register(loop_tasks.price_loop)
 dp.startup.register(loop_tasks.watchdog_loop)
 dp.startup.register(loop_tasks.alert_loop)
 dp.startup.register(say_hi)
 dp.include_routers(commands.router, admin.router)
-
-
-
 
 
 async def main():

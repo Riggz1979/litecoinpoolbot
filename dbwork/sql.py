@@ -10,13 +10,13 @@ class DBWork:
         self.engine.connect()
         self.metadata = MetaData()
         self.user = Table('users', self.metadata,
-                          Column('user_id', BigInteger, primary_key=True),
+                          Column('id', BigInteger, primary_key=True, autoincrement=True),
                           Column('tg_id', BigInteger, unique=True),
                           Column('api_key', String(255), unique=True),
                           Column('hash_wd', BigInteger, default=0)
                           )
         self.alert = Table('alerts', self.metadata,
-                           Column('alert_id', BigInteger, primary_key=True),
+                           Column('id', BigInteger, primary_key=True, autoincrement=True),
                            Column('user_id', BigInteger, ForeignKey('users.tg_id')),
                            Column('crypto', String(255)),
                            Column('value', Float, default=0),
@@ -88,11 +88,11 @@ class DBWork:
         return r.fetchall()
 
     def delete_alert(self, user_id, alert_id):
-        u = self.alert.select().where(self.alert.c.user_id == user_id).where(self.alert.c.alert_id == alert_id)
+        u = self.alert.select().where(self.alert.c.user_id == user_id).where(self.alert.c.id == alert_id)
         r = self.conn.execute(u)
         if r.fetchone():
-            u = self.alert.delete().where(self.alert.c.alert_id == alert_id)
-            r = self.conn.execute(u)
+            u = self.alert.delete().where(self.alert.c.id == alert_id)
+            self.conn.execute(u)
             self.conn.commit()
             return True
         return False
@@ -102,3 +102,7 @@ class DBWork:
         r = self.conn.execute(u)
         return r.fetchall()
 
+    def get_user_alerts(self, user_tg_id):
+        u = select(self.alert).where(self.alert.c.user_id == user_tg_id)
+        r = self.conn.execute(u)
+        return r.fetchall()
