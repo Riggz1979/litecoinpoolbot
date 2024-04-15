@@ -1,4 +1,5 @@
 import asyncio
+from random import random, randint
 
 import varlist
 from api import prices
@@ -7,6 +8,7 @@ from handlers.commands import data_manager, api_work
 
 prices = prices.Prices()
 INTERVAL = int(config.interval.get_secret_value())
+TEST = bool(config.test.get_secret_value())
 
 
 async def check_watchdogs(bot):
@@ -16,28 +18,35 @@ async def check_watchdogs(bot):
     :return:
     """
     count = 0
+    # dict for watchdogs
     watchdogs = {}
+    # list for users
     users_list = []
     while True:
         count += 1
         if count == 1:
             users_list = data_manager.get_all_users()
             for user in users_list:
-                watchdogs[user[0]] = 0
+                watchdogs[user.id] = 0
         for user in users_list:
-            user_id = user[0]
-            wd = api_work.get_hash(user[2])  # random.randint(400, 550)
+            user_id = user.id
+            if TEST:
+                wd = randint(400, 550)  # random value for test mode
+                print(wd)
+            else:
+                wd = api_work.get_hash(user.api_key)
             watchdogs[user_id] += wd
             if count == 5:
                 awg_wd = watchdogs[user_id] / count
-
-                if awg_wd < user[3]:
-                    await bot.send_message(user[1], f'Warning! Looks like your hash rate low! '
-                                                    f'{awg_wd} MH/s vs {user[3]} MH/s')
-
+                if awg_wd < user.hash_wd:
+                    await bot.send_message(user.tg_id, f'Warning!\nLooks like your hash rate low!\n'
+                                                       f'{awg_wd} MH/s < {user.hash_wd} MH/s')
         if count == 5:
             count = 0
-        await asyncio.sleep(360)
+        if TEST:
+            await asyncio.sleep(10)
+        else:
+            await asyncio.sleep(360)
 
 
 async def check_alerts_list(bot):
