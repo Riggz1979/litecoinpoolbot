@@ -1,5 +1,7 @@
-from sqlalchemy import Column, String, create_engine, MetaData, Table, insert, update, select, BigInteger, ForeignKey, \
-    Boolean
+from sqlalchemy import (Column, String, create_engine,
+                        MetaData, Table, insert,
+                        update, select, BigInteger,
+                        ForeignKey, Boolean, Float)
 
 
 class DBWork:
@@ -8,25 +10,24 @@ class DBWork:
         self.engine.connect()
         self.metadata = MetaData()
         self.user = Table('users', self.metadata,
-                          Column('user_id', BigInteger, primary_key=True),
+                          Column('id', BigInteger, primary_key=True, autoincrement=True),
                           Column('tg_id', BigInteger, unique=True),
                           Column('api_key', String(255), unique=True),
                           Column('hash_wd', BigInteger, default=0)
                           )
         self.alert = Table('alerts', self.metadata,
-                           Column('alert_id', BigInteger, primary_key=True),
+                           Column('id', BigInteger, primary_key=True, autoincrement=True),
                            Column('user_id', BigInteger, ForeignKey('users.tg_id')),
                            Column('crypto', String(255)),
-                           Column('value', BigInteger, default=0),
-                           Column('go_up', Boolean, default=False)
+                           Column('value', Float, default=0),
+                           Column('go_up', Boolean, default=False),
+
                            )
 
         self.metadata.create_all(self.engine)
         self.conn = self.engine.connect()
 
     def add_user(self, tg_id, api_key):
-        print(tg_id, api_key)
-        print(type(api_key), type(tg_id))
         user_to_add = insert(self.user).values(
             tg_id=tg_id,
             api_key=api_key,
@@ -72,8 +73,36 @@ class DBWork:
             return True
         return False
 
+    def set_alert(self, user_id, crypto, value, go_up):
+        alert_to_add = (insert(self.alert).
+                        values(user_id=user_id,
+                               crypto=crypto,
+                               value=value,
+                               go_up=go_up))
+        self.conn.execute(alert_to_add)
+        self.conn.commit()
 
-if __name__ == '__main__':
-    d = DBWork('sqlite:///sqlite3.db')
-    u = select(d.user.c['tg_id']).where((d.user.c.tg_id == 1))
-    print(u)
+    def alerts_list(self, for_user):
+        u = self.alert.select().where(self.alert.c.user_id == for_user)
+        r = self.conn.execute(u)
+        return r.fetchall()
+
+    def delete_alert(self, user_id, alert_id):
+        u = self.alert.select().where(self.alert.c.user_id == user_id).where(self.alert.c.id == alert_id)
+        r = self.conn.execute(u)
+        if r.fetchone():
+            u = self.alert.delete().where(self.alert.c.id == alert_id)
+            self.conn.execute(u)
+            self.conn.commit()
+            return True
+        return False
+
+    def get_all_alerts(self):
+        u = self.alert.select()
+        r = self.conn.execute(u)
+        return r.fetchall()
+
+    def get_user_alerts(self, user_tg_id):
+        u = select(self.alert).where(self.alert.c.user_id == user_tg_id)
+        r = self.conn.execute(u)
+        return r.fetchall()

@@ -1,14 +1,15 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.filters import Command, CommandObject
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message
 
 import texts.texts as _texts
+import varlist
 from api import pool
 from config_reader import config
 from dbwork import sql
-from keyboards import for_alerts
 
 DATABASE = config.database.get_secret_value()
+ADMIN_ID = int(config.admin_id.get_secret_value())
 data_manager = sql.DBWork(DATABASE)
 api_work = pool.PoolApi()
 
@@ -48,6 +49,14 @@ async def cmd_get_stats(message: Message):
         await message.answer('API key not registered')
 
 
+@router.message(Command('prices'))
+async def popular_prices(message: Message):
+    await message.answer(f'Bitcoin:      {varlist.price_list['bitcoin']} USD\n'
+                         f'Litecoin:    {varlist.price_list['litecoin']} USD\n'
+                         f'Doge:         {varlist.price_list['dogecoin']} USD\n'
+                         f'Ethereum:  {varlist.price_list['ethereum']} USD')
+
+
 @router.message(Command("api"))
 async def cmd_api(message: Message, command: CommandObject):
     if command.args is None:
@@ -66,7 +75,10 @@ async def cmd_api(message: Message, command: CommandObject):
 
 @router.message(Command('commands'))
 async def commands(message: Message):
-    await message.answer(_texts.COMMANDS)
+    if message.from_user.id != ADMIN_ID:
+        await message.answer(_texts.COMMANDS)
+    else:
+        await message.answer(_texts.COMMANDS + _texts.ADMIN_COMMANDS)
 
 
 @router.message(Command("watchdog"))
@@ -86,19 +98,75 @@ async def set_watchdog(message: Message, command: CommandObject):
 @router.message(Command("set_alert"))
 async def set_alert(message: Message, command: CommandObject):
     if data_manager.check_user_exist(message.from_user.id):
-        await message.answer('Select crypto:'
-                             , reply_markup=for_alerts.select_crypto())
+        if command.args is None:
+            await message.answer(
+                'No arguments provided!\n'
+                'example: /set_alert bitcoin > 100000'
+            )
+            return
+        try:
+            crypto, gt, val = command.args.split(" ", maxsplit=2)
+        except ValueError:
+            await message.answer(
+                'Wrong arguments. Please try again.'
+            )
+            return
+        if crypto not in ['bitcoin', 'litecoin', 'dogecoin', 'ethereum']:
+            await message.answer('Unsupported crypto type.\n'
+                                 'Now supported:\n'
+                                 'bitcoin\n'
+                                 'litecoin\n'
+                                 'dogecoin\n'
+                                 'ethereum\n')
+            return None
+        if gt == '>':
+            gt_add = True
+        elif gt == '<':
+            gt_add = False
+        else:
+            await message.answer('Comparison sign must be > or <')
+            return None
+        if len(val) < 12:
+            try:
+                val = float(val)
+                print(val)
+            except ValueError:
+                await message.answer('Check value!')
+                return None
+            data_manager.set_alert(message.from_user.id, crypto.lower(), val, gt_add)
+            await message.answer(f'Alert set: {crypto}{gt}{val}')
+        else:
+            await message.answer('Check value!')
+    else:
+        await message.answer('API key not registered.')
 
-    @router.message(F.text.lower() == 'bitcoin')
-    async def answer_yes(message: Message):
-        await message.answer(
-            "BTC",
-            reply_markup=ReplyKeyboardRemove()
-        )
 
-    @router.message(F.text.lower() == 'litecoin')
-    async def answer_yes(message: Message):
+@router.message(Command('alerts'))
+async def alerts_list(message: Message):
+    answer_str = f'{message.from_user.first_name} alerts list:\n'
+    alerts = data_manager.alerts_list(message.from_user.id)
+    for alert in alerts:
+        if alert.go_up:
+            ans_go_up = '>'
+        else:
+            ans_go_up = '<'
+        answer_str += (f'{alert.id}: '
+                       f'{alert.crypto}'
+                       f'{ans_go_up}'
+                       f'{alert.value}\n')
+    await message.answer(answer_str)
+
+
+@router.message(Command('del_alert'))
+async def del_alert(message: Message, command: CommandObject):
+    if command.args is None:
         await message.answer(
-            "LTC",
-            reply_markup=ReplyKeyboardRemove()
+            'No arguments provided\n'
+            'example: /del_alert 25'
         )
+        return
+    if command.args.isdigit():
+        if data_manager.delete_alert(message.from_user.id, int(command.args)):
+            await message.answer('Alert deleted!')
+        else:
+            await message.answer('Invalid alert id!')
