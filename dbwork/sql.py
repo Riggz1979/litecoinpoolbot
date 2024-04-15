@@ -87,4 +87,18 @@ class DBWork:
         r = self.conn.execute(u)
         return r.fetchall()
 
+    def delete_alert(self, user_id, alert_id):
+        u = self.alert.select().where(self.alert.c.user_id == user_id).where(self.alert.c.alert_id == alert_id)
+        r = self.conn.execute(u)
+        if r.fetchone():
+            u = self.alert.delete().where(self.alert.c.alert_id == alert_id)
+            r = self.conn.execute(u)
+            self.conn.commit()
+            return True
+        return False
+
+    def get_all_alerts(self):
+        u = self.alert.select()
+        r = self.conn.execute(u)
+        return r.fetchall()
 

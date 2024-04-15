@@ -47,7 +47,12 @@ async def cmd_get_stats(message: Message):
     else:
         await message.answer('API key not registered')
 
-
+@router.message(Command('prices'))
+async def popular_prices(message: Message):
+    await message.answer(f'Bitcoin:      {price_list['bitcoin']} USD\n'
+                         f'Litecoin:    {price_list['litecoin']} USD\n'
+                         f'Doge:         {price_list['dogecoin']} USD\n'
+                         f'Ethereum:  {price_list['ethereum']} USD')
 @router.message(Command("api"))
 async def cmd_api(message: Message, command: CommandObject):
     if command.args is None:
@@ -133,5 +138,19 @@ async def alerts_list(message: Message):
                        f'{ans_go_up}'
                        f'{alert.value}\n')
     await message.answer(answer_str)
+
+@router.message(Command('del_alert'))
+async def del_alert(message: Message, command: CommandObject):
+    if command.args is None:
+        await message.answer(
+            'No arguments provided'
+        )
+        return
+    if command.args.isdigit():
+        if data_manager.delete_alert(message.from_user.id, int(command.args)):
+            await message.answer('Alert deleted!')
+        else:
+            await message.answer('Invalid alert id!')
+
 
 

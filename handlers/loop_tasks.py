@@ -1,6 +1,11 @@
 import asyncio
 
+from config_reader import config
 from handlers.commands import data_manager, api_work
+from api import prices
+
+prices = prices.Prices()
+INTERVAL = int(config.interval.get_secret_value())
 
 
 async def check_watchdogs(bot):
@@ -31,3 +36,27 @@ async def check_watchdogs(bot):
 
 async def watchdog_loop(bot):
     asyncio.create_task(check_watchdogs(bot))
+
+
+async def check_alerts_list(bot):
+    while True:
+        alerts_to_check = data_manager.get_all_alerts()
+        for alert in alerts_to_check:
+            print(alert)
+        print("Alerts")
+        await asyncio.sleep(20)
+
+
+async def alert_loop(bot):
+    asyncio.create_task(check_alerts_list(bot))
+
+async def get_prices_loop():
+    global price_list
+    while True:
+        price_list = prices.get_most_popular()
+        print(f'Price list: {price_list}, interval: {INTERVAL}')
+        await asyncio.sleep(INTERVAL)
+
+
+async def price_loop():
+    asyncio.create_task(get_prices_loop())

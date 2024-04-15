@@ -6,15 +6,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters.command import Command
 from aiogram.types import Message
 
-from api import prices
 from config_reader import config
 from handlers import commands, admin, loop_tasks
 
-prices = prices.Prices()
-
-INTERVAL = int(config.interval.get_secret_value())
 ADMIN_ID = int(config.admin_id.get_secret_value())
-price_list = {}
 
 
 async def say_hi():
@@ -22,34 +17,18 @@ async def say_hi():
                                      f'bot online!\nVersion 1.2')
 
 
-async def get_prices_loop():
-    global price_list
-    while True:
-        price_list = prices.get_most_popular()
-        print(f'Price list: {price_list}, interval: {INTERVAL}')
-        await asyncio.sleep(INTERVAL)
-
-
-async def price_loop():
-    asyncio.create_task(get_prices_loop())
-
-
 # Bot init
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
-dp.startup.register(price_loop)
+dp.startup.register(loop_tasks.price_loop())
 dp.startup.register(loop_tasks.watchdog_loop)
+dp.startup.register(loop_tasks.alert_loop)
 dp.startup.register(say_hi)
 dp.include_routers(commands.router, admin.router)
 
 
-@dp.message(Command('prices'))
-async def popular_prices(message: Message):
-    await message.answer(f'Bitcoin:      {price_list['bitcoin']} USD\n'
-                         f'Litecoin:    {price_list['litecoin']} USD\n'
-                         f'Doge:         {price_list['dogecoin']} USD\n'
-                         f'Ethereum:  {price_list['ethereum']} USD')
+
 
 
 async def main():
