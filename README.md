@@ -7,7 +7,7 @@ It also includes several additional features.
 Features:
 - Mining statistics
 - Hashrate watchdog
-- Rates of popular cryptocurrencies (bitcoin, litecoin, dogecoin, ethereum)
-- Ability to set alerts for currency rates
+- Prices of popular cryptocurrencies (bitcoin, litecoin, dogecoin, ethereum)
+- Ability to set alerts for currency prices
 - Admin commands
 - OTA updates
