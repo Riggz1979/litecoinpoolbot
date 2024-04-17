@@ -22,7 +22,6 @@ My instance of bot:
 Little presentation page:
 <a href = "http://riggz1979.github.io">github.io</a>
 
-
 Deployment:
 
 1. clone repo

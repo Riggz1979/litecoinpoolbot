@@ -169,3 +169,10 @@ async def del_alert(message: Message, command: CommandObject):
             await message.answer('Alert deleted!')
         else:
             await message.answer('Invalid alert id!')
+
+
+@router.message(Command('help'))
+async def help(message: Message):
+    await message.answer(_texts.HELP)
+    if message.from_user.id == ADMIN_ID:
+        await message.answer(_texts.ADMIN_HELP)

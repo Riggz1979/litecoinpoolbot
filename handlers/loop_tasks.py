@@ -31,11 +31,12 @@ async def check_watchdogs(bot):
         for user in users_list:
             user_id = user.id
             if TEST:
-                wd = randint(400, 550)  # random value for test mode
-                print(wd)
+                hash_rate = randint(400, 550)  # random value for test mode
+                print(f'Emulated hash rate:{hash_rate}')
             else:
-                wd = api_work.get_hash(user.api_key)
-            watchdogs[user_id] += wd
+                hash_rate = api_work.get_hash(user.api_key)
+                print(f'API hash rate:{hash_rate}')
+            watchdogs[user_id] += hash_rate
             if count == 5:
                 awg_wd = watchdogs[user_id] / count
                 if awg_wd < user.hash_wd:
@@ -63,10 +64,18 @@ async def check_alerts_list(bot):
             for alert in alerts_to_check:
                 if alert.go_up is True:
                     if varlist.price_list[alert.crypto] > alert.value:
-                        alert_string += f'{alert.id}: {alert.crypto} > {alert.value} ({varlist.price_list[alert.crypto]})\n'
+                        alert_string += (f'{alert.id}: '
+                                         f'{alert.crypto} > '
+                                         f'{alert.value} ('
+                                         f'{varlist.price_list[alert.crypto]}'
+                                         f')\n')
                 else:
                     if varlist.price_list[alert.crypto] < alert.value:
-                        alert_string += f'{alert.id}: {alert.crypto} < {alert.value} ({varlist.price_list[alert.crypto]})\n'
+                        alert_string += (f'{alert.id}: '
+                                         f'{alert.crypto} < '
+                                         f'{alert.value} ('
+                                         f'{varlist.price_list[alert.crypto]}'
+                                         f')\n')
             if alert_string != 'Alerts:\n':
                 await bot.send_message(user.tg_id, alert_string)
                 alert_string = 'Alerts:\n'

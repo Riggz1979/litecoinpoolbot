@@ -24,4 +24,4 @@ class PoolApi:
         response = requests.get(url)
         if response.status_code != 200:
             return False
-        return response.json()['user']['hash_rate']
+        return response.json()['user']['hash_rate'] / 1000
