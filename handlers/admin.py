@@ -53,3 +53,9 @@ async def ota(message: Message, bot, dispatcher):
         await message.answer('OTA received\nRestarting program')
         await dispatcher.stop_polling()
         restart_program()
+
+
+@router.message(Command('shutdown'))
+async def shutdown(message: Message, dispatcher):
+    await message.reply('Shutting down now!')
+    await dispatcher.stop_polling()
