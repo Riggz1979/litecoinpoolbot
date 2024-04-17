@@ -40,8 +40,9 @@ async def check_watchdogs(bot):
             if count == 5:
                 awg_wd = watchdogs[user_id] / count
                 if awg_wd < user.hash_wd:
-                    await bot.send_message(user.tg_id, f'Warning!\nLooks like your hash rate low!\n'
-                                                       f'{awg_wd} MH/s < {user.hash_wd} MH/s')
+                    await bot.send_message(user.tg_id, f'Warning!\n'
+                                                       f'Looks like your hash rate low!\n'
+                                                       f'{int(awg_wd)} MH/s < {user.hash_wd} MH/s')
         if count == 5:
             count = 0
         if TEST:
